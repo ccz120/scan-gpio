@@ -3,8 +3,8 @@
 
 #include    <stdio.h>
 #include    <stdlib.h>
-#include    <time.h>
-#include    <management_string.c>
+#include    "time.h"
+#include    "management_string.c"
 
 
 char* getTime() { 

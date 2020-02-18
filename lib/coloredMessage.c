@@ -2,7 +2,7 @@
 #define COLORED_MESSAGE_C
 
 #include <stdio.h>
-#include <printColor.c>
+#include "printColor.c"
 
 
 void errorMessage(const char *mex) {
