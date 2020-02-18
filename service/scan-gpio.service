@@ -1,0 +1,11 @@
+[Unit]
+Description=/usr/bin/scan-gpio.sh Compatibility
+ConditionPathExists=/usr/bin/scan-gpio.sh 
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/scan-gpio.sh 
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target

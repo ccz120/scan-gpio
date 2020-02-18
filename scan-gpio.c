@@ -1,5 +1,5 @@
-#include <function.h>
-#include <function-gpio.h>
+#include "lib/function.h"
+#include "lib/function-gpio.h"
 
 #define MAX_GPIO                    28
 #define MAX_LENGTH_PATH_GPIO        64
