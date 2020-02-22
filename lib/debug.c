@@ -3,7 +3,7 @@
 
 #include    <stdio.h>
 #include    <apiSO.c>
-#include    "printColor.c"
+#include    <printColor.c>
 
 #define PRINT_IF_DEBUG_ON if(debug()) printf
 

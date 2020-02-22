@@ -3,8 +3,8 @@
 
 #include    <stdio.h>
 #include    <stdlib.h>
-#include    "time.h"
-#include    "management_string.c"
+#include    <time.h>
+#include    <management_string.c>
 
 
 char* getTime() { 
@@ -78,7 +78,7 @@ reCompute:
         }
     } else {
         if (mStart > mEnd) { 
-            printf("Tick\n");
+            //printf("Tick\n");
             hStart += 1;
             flag = 1;
             goto reCompute;

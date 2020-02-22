@@ -5,9 +5,9 @@
 #include    <string.h>
 #include    <stdlib.h>
 #include    <pwd.h>
-#include    "apiSO.c"
-#include    "assert.h"
-#include    "debug.c"
+#include    <apiSO.c>
+#include    <assert.h>
+#include    <debug.c>
 
 #ifndef TRUE
 #pragma message "problema di incompatibilita', risolto con una pezza"

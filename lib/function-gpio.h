@@ -1,74 +1,29 @@
-#include "function.h"
+#include<function.h>
 
-#ifndef FUNCTION_GPIO
+#ifndef FUNCTION_GPIO 
 #define FUNCTION_GPIO
-
-#ifdef DEBUG_GPIO
-#define GPIO_MAX 28
-
-
-struct {
-    int direction[GPIO_MAX];  //in or out
-    int gpio[GPIO_MAX];           //gpio number, eg: 25
-    int isInit;
-} Gpio;
-
-
-int pinIsInitialized(int pin) {
-    printf("[pinIsInitialized] Called on %d\n", pin);
-    return Gpio.isInit == 0; 
-}
-
-int initializePin(int pin, int direction) {
-    warningMessage("[initializePin] Called on %d\n", pin);
-    if (Gpio.isInit == 1) {
-        errorMessage("[initializePin] YOU CALL ME GREATER THEN ONE TIME\n");
-        return 1;
-    }
-    Gpio.isInit = 1;
-    return 0;
-}
-
-void write_pin(int pin, int value) {
-    if (Gpio.direction[pin % GPIO_MAX] == 0) {
-        errorMessage("[write_pin] ");
-    }
-    printf("[write_pin] Called on %d. New value is: %d\n", pin, value);
-}
-
-int read_direction(int pin) {
-}
-
-int is_input(int pin) {
-}
-
-int read_pin(int pin) {
-}
-
-
-
-
-
-#else
-
-
-
-
-
-
-
-
 
 #define NO_ROOT     TRUE
 #define PATH_LOG    "/home/%s/log/log_gpio/"
 #define RISING      "HIGH"
 #define FALLING     "LOW"
 
+/*
+ * to debug
+ * */
+void write_generic_log(char *text){
+	FILE *f=fopen("/home/pi/Desktop/log_generic.txt", "a+");
+	char * toWrite = (char*)malloc(strlen(text) + strlen(getTime()) + 3);	//sizeof(char) = 1
+	sprintf(toWrite, "[%s] %s", getTime(), text);
+	fprintf(f, "%s\n\n", toWrite);
+	fclose(f);
+	free(toWrite);
+}
 
 /*	
  *	control path: /sys/class/gpio/gpioN/value. if not exist return 0, else 1
 */
-int pinIsInitialized(int pin) {
+int pinIsInitialized(int pin){
 	char path[48];
     initArray_str(path, 48);
 	sprintf(path, "/sys/class/gpio/gpio%d/value", pin);
@@ -85,7 +40,7 @@ int pinIsInitialized(int pin) {
  *
  *	Eg: initializePin(4, "out");
  * */
-int initializePin(int pin, int direction) {	//direction = 1 ==> "out"; direction = 0 ==> "in"
+int initializePin(int pin, int direction){	//direction = 1 ==> "out"; direction = 0 ==> "in"
 	char path[48];
     initArray_str(path, 48);
 	if (!pinIsInitialized(pin)){
@@ -97,7 +52,7 @@ int initializePin(int pin, int direction) {	//direction = 1 ==> "out"; direction
                     "###################\n"
                     );
             printf("Abort\n");
-            exit(EXIT_FAILURE);
+            //exit(EXIT_FAILURE);
         }
 		fprintf(f, "%d", pin);
 		fclose(f);
@@ -116,10 +71,11 @@ int initializePin(int pin, int direction) {	//direction = 1 ==> "out"; direction
  * Eg: 	write_pin(12, 1);	turn on gpio 12
  * 	write_pin(12,0);	turn off gpio 12
  * */
-void write_pin(int pin, int value) {
+void write_pin(int pin, int value){
 	initializePin(pin, 1);
-	char path[64];
-    initArray_str(path, 64);
+	//printf("\n[write_pin]Pin: %d value: %d\n\n", pin ,value);
+	char path[32];
+    initArray_str(path, 32);
 	sprintf(path, "/sys/class/gpio/gpio%d/value", pin);
 	FILE *f=fopen(path, "w");
 	fprintf(f, "%d", value);
@@ -132,22 +88,22 @@ void write_pin(int pin, int value) {
 */
 void write_pin_s(int pin, int value, char *file) {
     char log[128];
-    char pathLog[64];
+    char pathLog[32];
     initArray_str(pathLog, 32);
     initArray_str(log, 128);
-    initArray_str(pathLog, 64);
+    initArray_str(pathLog, 32);
 
     getUserId(user, TRUE);
     sprintf(pathLog, PATH_LOG"%d", user, pin);
     
     if (value == 0 || value == 1) {
-        sprintf(log, "[%s] new state is %s \tupdate by: '%s'\n", getTime(), value == 1 ? RISING : FALLING, file);
+        sprintf(log, "[%s] new state is %s \tupdate by the file: '%s'\n", getTime(), value == 1 ? RISING : FALLING, file);
         if (strcmp(user, "stefano"))
             write_pin(pin, value);
         else 
             printf("[non siamo sul raspberry, avremmo modificato il pin] %d newvalue -> %d\n", pin, value);
     } else {
-        sprintf(log, "[%s]->write_pin_s error value. Its need to be '1' or '0' only. You gived me: %d\n\n", getTime(), value);
+        sprintf(log, "[%s]->write_pin_s error value. Its need to be '1' or '0' only. You give me: %d\n\n", getTime(), value);
     }
     if (debug()) printf("%s", log);
     
@@ -158,7 +114,7 @@ void write_pin_s(int pin, int value, char *file) {
 }
 
 
-/*
+/* 
  * @return	0 if gpio is "in"
  * 		1 if gpio is "out"
  * 		-1 if gpio is not initialize
@@ -168,8 +124,8 @@ void write_pin_s(int pin, int value, char *file) {
  *
  * 	OUTPUT:	Pin 12 is set like INPUT, the value is 0
  * */
-int read_direction(int pin) {
-	if (pinIsInitialized(pin)) {
+int read_direction(int pin){	
+	if (pinIsInitialized(pin)){
         char path[48];
         initArray_str(path, 48);
 		char direction[8];
@@ -189,7 +145,7 @@ int read_direction(int pin) {
 /**
  * The direction of pin is "in"?
  * */
-int is_input(int pin) {
+int is_input(int pin){
 	char path_gpio[64];
 	char state[3];
     initArray_str(path_gpio, 64);
@@ -204,16 +160,21 @@ int is_input(int pin) {
 }
 
 /*	read_pin(pin)
- *	read the value of the gpio (0/1) -1 if pin is not initialized
+ *	read the value of the gpio (0/1)
  *
  * @return value of the gpio
  * */
-int read_pin(int pin) {
+int read_pin(int pin){
 	int value;
 	char path[32];
     initArray_str(path, 32);
 	sprintf(path, "/sys/class/gpio/gpio%d/value", pin);
-
+/*	//if you want print here the direction:
+	if (read_direction(pin) == 1)
+		printf("This pin (%d) is set like out\n", pin);
+	else
+		printf("This pin (%d) is set like in\n", pin);
+*/	//Or, with different output you can use 
 //	print_direction(pin);
 
 	FILE *f=fopen(path, "r");
@@ -223,13 +184,21 @@ int read_pin(int pin) {
 	return value;
 }
 
+void print_direction(int pin){
+	if (pinIsInitialized(pin)){
+		printf("The direction is: "); is_input(pin) == TRUE ? printf("IN\n") : printf("OUT\n");
+	} else {
+		printf("Pin is not inizilized\n");
+	}
+}
+
 /*
  *	to example see down: f_pwm_gpio()
  *
  *  This function create a pwm, be careful. Please, use f_pwm_gpio()
  * */
-void _create_pwm(int f, int pinPwm) {
-	for (int i=0; i<100; i++) {
+void _create_pwm(float f, int pinPwm){
+	for (unsigned int i=0; i<100; i++){
 		if (i<f){
 			write_pin(pinPwm, 1);
 		} else {
@@ -239,30 +208,19 @@ void _create_pwm(int f, int pinPwm) {
 	}
 }
 
-#endif
-
-void print_direction(int pin) {
-	if (pinIsInitialized(pin)) {
-		printf("The direction is: "); is_input(pin) == TRUE ? printf("IN\n") : printf("OUT\n");
-	} else {
-		printf("Pin %d is not inizilized\n", pin);
-	}
+void change_priority(){
+	nice(-15);  //-20 MAX priority, 19 MIN, 0 DEFAULT	
 }
 
-
-void change_priority() {
-	nice(-19);  //-20 MAX priority, 19 MIN, 0 DEFAULT	
-}
-
-void set_priority(int priority) {
+void set_priority(int priority){
 	if (priority>19 || priority<-20) {
-		PRINT_IF_DEBUG_ON("[function-gpio.h->set_priority] Value of priority is only: [-20, +19]\n");
+		write_generic_log("[function-gpio.h->set_priority] Value of priority is only: [-20, +19]");
 	} else {
 		nice(priority);  //-20 MAX, 19 MIN, 0 DEFAULT	
 	} 
 }
 
-void remove_file_pid(int pin) {
+void remove_file_pid(int pin){
 	if (user==NULL)
 		getUserId(user, NO_ROOT);
 	char cmd[32];
@@ -271,13 +229,17 @@ void remove_file_pid(int pin) {
 	remove(cmd);
 }
 
-void sig_handler(int sig) {
+int _pinPwm, _flag=0;
+void sig_handler(int sig){
 	printf("lose\n");
-	//fcloseall();
+	fcloseall();
+	write_pin(_pinPwm, 0);	//turn off gpio
+	if (_flag == 1)
+		remove_file_pid(_pinPwm);
 	exit(EXIT_SUCCESS);
 }
 
-void write_pid(int pid, int pin, float frequency) {
+void write_pid(int pid, int pin, float frequency){
 	if (user==NULL)
 		getUserId(user, NO_ROOT);
 	char path[48];
@@ -291,7 +253,7 @@ void write_pid(int pid, int pin, float frequency) {
 
 
 //Only for function_pwm
-void clear_other_istance(int pin) {
+void clear_other_istance(int pin){
 	if (user==NULL)
 		getUserId(user, NO_ROOT);
 	char path[48];
@@ -311,7 +273,7 @@ void clear_other_istance(int pin) {
 }
 
 //Only for function_pwm
-void verify_input(char **argv) {
+void verify_input(char **argv){
 	float f=(float)atof(argv[1]);
 	if (f<0 || f>1) {
 		printf("Frequency error [%.2f]. Value: 0<f<1\n", f); 
@@ -332,14 +294,14 @@ void verify_input(char **argv) {
 /*	f(unction)_print_value_gpio(pin)
  *	print value and direction
  * */
-void f_print_value_gpio(int pin) {
+void f_print_value_gpio(int pin){
 	if (pin<=0 || pin >= 27){
 		printf("Bad argument. [%s->f_print_value_gpio] read/-r pin 	where pin is a number [1,26]\n", __FILE__);
 		exit(EXIT_FAILURE);
 	}
 	if (pinIsInitialized(pin)) { 
         printf("Value: %d\n", read_pin(pin));
-        printf("Direction: "); read_direction(pin) == 0 ? printf("in\n") : printf("out\n");
+        printf("Direction: "); read_direction(pin) == 0 ? printf("in") : printf("out");
     } else {
         printf("Pin %d is not initialize then have not any direction and any value\n", pin);
     }
@@ -347,7 +309,7 @@ void f_print_value_gpio(int pin) {
 
 /*	f(unction)_write_gpio(pin)
  * */
-void f_write_gpio(int pin, int value) {
+void f_write_gpio(int pin, int value){
 	if (pin<=0 || pin >= 27){
 		printf("Bad argument. [%s->f_write_gpio] write/-w pin 	where pin is a number [1,26]\n", __FILE__);
 		exit(EXIT_FAILURE);
@@ -360,7 +322,7 @@ void f_write_gpio(int pin, int value) {
  * @return 1 if the direction is out, 0 if the direction is in, -1 if an error is detected
  * eg: f_init_gpio(12, "out")		to initialize gpio 12 like output
  * */
-int f_init_gpio(int pin, char *dir) {
+int f_init_gpio(int pin, char *dir){
 	if (pin<=0 || pin >= 27){
 		printf("Bad argument. [%s] init/-i pin direction	where pin is a number [1,26] and direction is 0 (in) or 1 (out)\n", __FILE__);
 		return -1;
@@ -384,28 +346,28 @@ int f_init_gpio(int pin, char *dir) {
  *
  * Eg: 	f_pwm_gpio(0.001, 12);	//ok
  * 	f_pwm_gpio(0.84, 12);	//ok
- *	f_pwm_gpio(2, 12);	//NO! It's an error
+ *	f_pwm_gpio(2, 12);	//NO! It's a error
  * */
-int f_pwm_gpio(float f, int pin) {
+int f_pwm_gpio(float f, int pin){
 	if (pin<=0 || pin >= 27 || f>1 || f<0){
 		printf("Bad argument. [%s->f_pwm_gpio] f_pwm_gpio(f, pin)		where f is a float [0,1] and pin is a int [1,26]\n", __FILE__);
 		exit(EXIT_FAILURE);
 	}
-	//signal(SIGINT, sig_handler);
-	//getUserId(user, NO_ROOT);
+	signal(SIGINT, sig_handler);
+	getUserId(user, NO_ROOT);
 	if (f==0.0){ clear_other_istance(pin); remove_file_pid(pin); write_pin(pin, 0); exit(EXIT_SUCCESS); }
 	if (f==1.0){ clear_other_istance(pin); remove_file_pid(pin); write_pin(pin, 1); exit(EXIT_SUCCESS); }
 	initializePin(pin, 1);
-	//int pid = getpid();
-	//clear_other_istance(pin);
-	//change_priority();
-	//write_pid(pid, pin, f); //and frequency
-	//_pinPwm=pin;	//per routine chiusura
-	//_flag=1;
-    int normalizedDutyCycle = f * 100;
-	printf("Frequency: %d pin: %d\n", normalizedDutyCycle, pin); //or %.4f
+	int pid = getpid();
+	clear_other_istance(pin);
+	change_priority();
+	write_pid(pid, pin, f); //and frequency
+	_pinPwm=pin;	//per routine chiusura
+	_flag=1;
+	printf("Frequency: %.2f pin: %d pid: %d\n", f, pin, pid); //or %.4f
+	f*=100;	//to normalize
 	while(1){
-		_create_pwm(normalizedDutyCycle, pin);
+		_create_pwm(f, _pinPwm);
 	}
 }
 
@@ -418,7 +380,7 @@ int f_pwm_gpio(float f, int pin) {
  * @return the new value
  * */
 int toggles_pin(int pin, char *instanceCaller) {
-	if (pinIsInitialized(pin)) {
+	if (pinIsInitialized(pin)){
 		if (read_pin(pin)==0){
 			write_pin_s(pin, 1, instanceCaller);
 			printf("Pin %d now is HIGH\n", pin);
@@ -435,11 +397,11 @@ int toggles_pin(int pin, char *instanceCaller) {
 	}
 }
 
-int open_door() {
+int open_door(){
 	return read_pin(6) == 1;
 }
 
-int isOpenDoor() {
+int isOpenDoor(){
 	return read_pin(6) == 1;
 }
 

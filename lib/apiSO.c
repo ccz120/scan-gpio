@@ -12,10 +12,10 @@
 #define     TRUE      1
 #define     FALSE     0
 
-#include    "management_date.c"
-#include    "coloredMessage.c"
-#include    "printColor.c"
-#include    "debug.c"
+#include    <management_date.c>
+#include    <printColor.c>
+#include    <debug.c>
+#include    <coloredMessage.c>
 
 
 void msleep(int ms) {
